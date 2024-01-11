@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_database/boxes/boxes.dart';
 import 'package:hive_database/courseModel/my_course_model.dart';
@@ -13,7 +14,7 @@ bool _secureMode = true;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   checkNotificationPermission();
-  NotificationServices().initialiseNotification();
+
   if (_secureMode == true) {
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   } else {
@@ -39,8 +40,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    return GetMaterialApp(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,

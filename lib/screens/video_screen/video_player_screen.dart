@@ -101,10 +101,10 @@ class _VideoPlayerVimeoState extends State<VideoPlayerVimeo> {
             videoQualityPriority: [240, 360]))
       ..initialise().then((value) {});
     Future.delayed(const Duration(milliseconds: 100));
-    int seconds = myCourseModelData!
-        .playBackValue!; // Replace this with your double value
+    // int seconds = myCourseModelData!
+    //     .playBackValue!; // Replace this with your double value
 
-    Duration duration = Duration(seconds: seconds);
-    controller!.videoSeekTo(duration);
+    // Duration duration = Duration(seconds: seconds);
+    // controller!.videoSeekTo(duration);
   }
 }

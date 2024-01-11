@@ -108,13 +108,13 @@ class _MyCourseListState extends State<MyCourseList> {
                                       : Container()
                                 ],
                               ),
-                              // LinearPercentIndicator(
-                              //   width: 140.0,
-                              //   lineHeight: 5.0,
-                              //   percent: list[index].controllerValue!,
-                              //   backgroundColor: Colors.grey,
-                              //   progressColor: Colors.blue,
-                              // ),
+                              LinearPercentIndicator(
+                                width: 140.0,
+                                lineHeight: 5.0,
+                                percent: list[index].controllerValue!,
+                                backgroundColor: Colors.grey,
+                                progressColor: Colors.blue,
+                              ),
                             ],
                           )),
                     ),
