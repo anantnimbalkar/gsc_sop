@@ -7,6 +7,8 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../../boxes/boxes.dart';
 
+
+
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
 

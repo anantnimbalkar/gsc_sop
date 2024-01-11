@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +7,8 @@ import 'package:hive_database/courseModel/my_course_model.dart';
 import 'package:hive_database/screens/audio/common.dart';
 import 'package:hive_database/screens/audio/components/control_button.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AudioPlayerScreen extends StatefulWidget {
@@ -23,11 +27,13 @@ class AudioPlayerScreen extends StatefulWidget {
 
 class _AudioPlayerScreenState extends State<AudioPlayerScreen>
     with WidgetsBindingObserver {
-  final player = AudioPlayer();
+  late AudioPlayer player;
+  late JustAudioBackground _audioBackground;
   MyCourseModel? myCourseModelData;
   @override
   void initState() {
     super.initState();
+    player = AudioPlayer();
     ambiguate(WidgetsBinding.instance).addObserver(this);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.black,
@@ -85,18 +91,85 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen>
   Future<void> _init(myCourseModel) async {
     // Inform the operating system of our app's audio attributes etc.
     // We pick a reasonable default for an app that plays speech.
+    /*    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.speech()); */
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+    await session.configure(AudioSessionConfiguration.music());
+
     // Listen to errors during playback.
     player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
       print('A stream error occurred: $e');
     });
-    // Try to load audio from a source and catch any errors.
+
     try {
       // AAC example: https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.aac
-      await player
-          .setAudioSource(AudioSource.uri(Uri.parse(myCourseModel!.videoName)));
+      if (Platform.isIOS) {
+        //?  <-------- Without Caching --------------->
+
+        if (await File(myCourseModelData!.videoName.toString()).exists()) {
+          String Path = myCourseModelData!.storePath!;
+          if (myCourseModelData != null) {
+            await player.setAudioSource(AudioSource.file(Path),
+                initialPosition:
+                    Duration(seconds: myCourseModelData!.playBackValue!));
+          } else {
+            await player.setAudioSource(AudioSource.file(Path));
+          }
+        } else {
+          await player.setAudioSource(
+            AudioSource.uri(
+              Uri.parse("${myCourseModelData!.videoName}"),
+              /*  headers: {
+                'Authorization': Config.fcmToken,
+              }, */
+              tag: MediaItem(
+                // Specify a unique ID for each media item:
+                id: '${myCourseModelData!.id.toString()}',
+                album: myCourseModelData!.videoName ?? "",
+                title: myCourseModelData!.videoName ?? "",
+              ),
+            ),
+          );
+        }
+      } else {
+        print('${myCourseModelData!.storePath}===================video name');
+        //?  <-------- With Caching --------------->
+        // Download and cache audio while playing it (experimental)
+        if (await File(myCourseModelData!.storePath!).exists()) {
+          print("exits the current nfsrsgorngoi--------------------------");
+          String Path = myCourseModelData!.storePath!;
+          if (myCourseModelData != null) {
+            await player.setAudioSource(AudioSource.file(Path),
+                initialPosition:
+                    Duration(seconds: myCourseModelData!.playBackValue!));
+          } else {
+            await player.setAudioSource(AudioSource.file(Path));
+          }
+          //await player.setAudioSource(AudioSource.file(Path));
+        } else {
+          final _audioSource = LockCachingAudioSource(
+            Uri.parse("${myCourseModelData!.videoName}"),
+            /* headers: {
+              'Authorization': Config.fcmToken,
+            }, */
+            tag: MediaItem(
+              // Specify a unique ID for each media item:
+              id: '${myCourseModelData!.id.toString()}',
+              album: myCourseModelData!.videoName ?? "",
+              title: myCourseModelData!.videoName ?? "",
+            ),
+          );
+          if (myCourseModelData != null) {
+            await player.setAudioSource(_audioSource,
+                initialPosition:
+                    Duration(seconds: myCourseModelData!.playBackValue!));
+          } else {
+            await player.setAudioSource(_audioSource);
+          }
+          //  await player.setAudioSource(_audioSource);
+        }
+      }
     } catch (e) {
       print("Error loading audio source: $e");
     }
@@ -108,22 +181,50 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen>
     // Release decoders and buffers back to the operating system making them
     // available for other apps to use.
     saveData();
-    player.dispose();
+    // player.dispose();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async{
     if (state == AppLifecycleState.paused) {
       // Release the player's resources when not in use. We use "stop" so that
       // if the app resumes later, it will still remember what position to
       // resume from.
-      player.stop();
+      player.play();
     }
+      if (state == AppLifecycleState.hidden) {
+      // Release the player's resources when not in use. We use "stop" so that
+      // if the app resumes later, it will still remember what position to
+      // resume from.
+      player.play();
+    }
+     if (state == AppLifecycleState.inactive) {
+      // Release the player's resources when not in use. We use "stop" so that
+      // if the app resumes later, it will still remember what position to
+      // resume from.
+      player.play();
+    }
+    if (state == AppLifecycleState.resumed) {
+      // Release the player's resources when not in use. We use "stop" so that
+      // if the app resumes later, it will still remember what position to
+      // resume from.
+    //  player.dispose();
+    
+      if (myCourseModelData != null) {
+            await player.setAudioSource(AudioSource.file(myCourseModelData!.storePath!),
+                initialPosition:
+                    Duration(seconds: myCourseModelData!.playBackValue!));
+          } else {
+            await player.setAudioSource(AudioSource.file(myCourseModelData!.storePath!));
+          }
+    }
+    print(state);
+    print("================object");
   }
 
   void saveData() {
-      Duration timeString = player.position;
+    Duration timeString = player.position;
 
     Duration totalDuration = player.duration!;
 

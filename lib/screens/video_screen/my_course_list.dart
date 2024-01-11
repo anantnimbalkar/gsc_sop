@@ -74,7 +74,9 @@ class _MyCourseListState extends State<MyCourseList> {
                                 children: [
                                   Text("Video ${list[index].id}"),
                                   const Spacer(),
-                                  const Icon(Icons.play_circle_fill),
+                                  (list[index].id == 6)
+                                      ? const Icon(Icons.audiotrack_sharp)
+                                      : const Icon(Icons.play_circle_fill),
                                   (list[index].id == 6 &&
                                           list[index].storePath!.isEmpty)
                                       ? ElevatedButton(
@@ -108,13 +110,13 @@ class _MyCourseListState extends State<MyCourseList> {
                                       : Container()
                                 ],
                               ),
-                              // LinearPercentIndicator(
-                              //   width: 140.0,
-                              //   lineHeight: 5.0,
-                              //   percent: list[index].controllerValue!,
-                              //   backgroundColor: Colors.grey,
-                              //   progressColor: Colors.blue,
-                              // ),
+                              LinearPercentIndicator(
+                                width: 140.0,
+                                lineHeight: 5.0,
+                                percent: list[index].controllerValue!,
+                                backgroundColor: Colors.grey,
+                                progressColor: Colors.blue,
+                              ),
                             ],
                           )),
                     ),
